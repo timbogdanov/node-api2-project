@@ -9,14 +9,47 @@ router.post('/', (req, res) => {
         .catch((error) => console.log(error));
     } else {
       res.status(400).json({
-        errorMessage:
-          'Please provide title and contents for the post.',
+        error: 'Please provide title and contents for the post.',
       });
     }
   } catch (error) {
     res.status(500).json({
       error:
         'There was an error while saving the post to the database',
+    });
+  }
+});
+
+router.post('/:id/comments', (req, res) => {
+  const id = req.params.id;
+  try {
+    if (id) {
+      if (req.body.text) {
+        req.body.post_id = id;
+
+        Posts.insertComment(req.body)
+          .then((comment) => {
+            Posts.findCommentById(comment.id).then((newComment) => {
+              res.status(201).json({ data: newComment });
+            });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else {
+        res.status(400).json({
+          errorMessage: 'Please provide text for the comment.',
+        });
+      }
+    } else {
+      res.status(404).json({
+        error: 'The post with the specified ID does not exist.',
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      error:
+        'There was an error while saving the comment to the database',
     });
   }
 });
